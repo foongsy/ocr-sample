@@ -63,6 +63,70 @@ Interactive Streamlit app for side-by-side markdown comparison:
 uv run streamlit run compare_md.py
 ```
 
+**Architecture:**
+
+```mermaid
+graph TB
+    subgraph "User Interface"
+        UI[Streamlit Web UI]
+        INPUT[Folder Input: AR2024_C]
+        NAV[Navigation Controls]
+        SELECT[Page Selector Dropdown]
+        MODE[View Mode Toggle]
+        DISPLAY[Split View Display]
+    end
+    
+    subgraph "File System"
+        BASE[Base Folder: AR2024_C/]
+        MD[md/ folder<br/>PyMuPDF4LLM output]
+        LLM_MD[llm_md/ folder<br/>LLM OCR output]
+        MD_FILES[page_0001.md<br/>page_0002.md<br/>...]
+        LLM_FILES[page_0001.md<br/>page_0002.md<br/>...]
+    end
+    
+    subgraph "Core Functions"
+        LOAD[load_markdown_files<br/>Find common pages]
+        READ[read_markdown_file<br/>Load content]
+        COMPARE[display_markdown_comparison<br/>Render side-by-side]
+    end
+    
+    subgraph "Session State"
+        STATE[st.session_state.page_index<br/>Current page tracking]
+    end
+    
+    UI --> INPUT
+    INPUT --> BASE
+    BASE --> MD
+    BASE --> LLM_MD
+    MD --> MD_FILES
+    LLM_MD --> LLM_FILES
+    
+    BASE --> LOAD
+    LOAD --> MD_FILES
+    LOAD --> LLM_FILES
+    LOAD --> |Common pages list| SELECT
+    
+    SELECT --> STATE
+    NAV --> STATE
+    STATE --> |Current page| READ
+    
+    READ --> MD_FILES
+    READ --> LLM_FILES
+    READ --> |Left content| COMPARE
+    READ --> |Right content| COMPARE
+    
+    MODE --> COMPARE
+    COMPARE --> DISPLAY
+    DISPLAY --> |Rendered or Raw| UI
+    
+    style UI fill:#e1f5ff
+    style DISPLAY fill:#e1f5ff
+    style BASE fill:#fff4e6
+    style MD fill:#f0f0f0
+    style LLM_MD fill:#f0f0f0
+    style STATE fill:#e8f5e9
+```
+
 ### 🧪 Agent Demo (`agent.py`)
 
 Example pydantic-ai agent implementation featuring:
